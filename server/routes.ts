@@ -150,6 +150,10 @@ async function fetchExternalApi(url: string): Promise<{ success: boolean; data?:
       headers["X-Api-Key"] = process.env.INDIAN_STOCK_API_KEY;
     }
 
+    if ((parsedUrl.hostname === "finnhub.io" || parsedUrl.hostname === "api.finnhub.io") && process.env.FINNHUB_API_KEY) {
+      headers["X-Finnhub-Token"] = process.env.FINNHUB_API_KEY;
+    }
+
     const response = await fetch(url, {
       method: "GET",
       headers,
