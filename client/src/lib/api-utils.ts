@@ -1,5 +1,12 @@
 import type { Field } from "@shared/schema";
 
+function isTimeSeriesObject(obj: Record<string, unknown>): boolean {
+  const keys = Object.keys(obj);
+  if (keys.length < 2) return false;
+  const datePattern = /^\d{4}-\d{2}-\d{2}/;
+  return keys.every(key => datePattern.test(key));
+}
+
 export function flattenObject(obj: unknown, prefix = ""): Record<string, { value: unknown; type: string }> {
   const result: Record<string, { value: unknown; type: string }> = {};
   
@@ -29,7 +36,24 @@ export function flattenObject(obj: unknown, prefix = ""): Record<string, { value
     return result;
   }
 
-  Object.entries(obj as Record<string, unknown>).forEach(([key, value]) => {
+  const objRecord = obj as Record<string, unknown>;
+  
+  if (isTimeSeriesObject(objRecord)) {
+    result[prefix || "data"] = { value: objRecord, type: "timeseries" };
+    const firstKey = Object.keys(objRecord)[0];
+    const sampleItem = objRecord[firstKey];
+    if (sampleItem && typeof sampleItem === "object") {
+      result[`${prefix}[0].date`] = { value: firstKey, type: "string" };
+      Object.keys(sampleItem as Record<string, unknown>).forEach(itemKey => {
+        const itemPath = `${prefix}[0].${itemKey}`;
+        const itemVal = (sampleItem as Record<string, unknown>)[itemKey];
+        result[itemPath] = { value: itemVal, type: typeof itemVal };
+      });
+    }
+    return result;
+  }
+
+  Object.entries(objRecord).forEach(([key, value]) => {
     const newPrefix = prefix ? `${prefix}.${key}` : key;
     
     if (value === null || value === undefined) {
@@ -113,21 +137,50 @@ export function formatValue(value: unknown, format?: Field["format"]): string {
   }
 }
 
+function convertTimeSeriesObjectToArray(obj: Record<string, unknown>): { data: unknown[]; dateField: string } | null {
+  const keys = Object.keys(obj);
+  if (keys.length < 2) return null;
+  
+  const datePattern = /^\d{4}-\d{2}-\d{2}/;
+  const allDates = keys.every(key => datePattern.test(key));
+  
+  if (allDates) {
+    const data = keys.map(dateKey => ({
+      date: dateKey,
+      ...(obj[dateKey] as Record<string, unknown>),
+    }));
+    return { data, dateField: "date" };
+  }
+  
+  return null;
+}
+
 export function extractArrayData(data: unknown, fields: Field[]): Record<string, unknown>[] {
   if (!data || !fields.length) return [];
   
   const arrayField = fields.find(f => f.path.includes("[0]"));
   if (arrayField) {
-    const arrayPath = arrayField.path.split("[0]")[0];
-    const arrayData = arrayPath ? getValueByPath(data, arrayPath) : data;
+    let arrayPath = arrayField.path.split("[0]")[0];
+    if (arrayPath.endsWith(".")) arrayPath = arrayPath.slice(0, -1);
+    let arrayData = arrayPath ? getValueByPath(data, arrayPath) : data;
+    
+    if (arrayData && typeof arrayData === "object" && !Array.isArray(arrayData)) {
+      const converted = convertTimeSeriesObjectToArray(arrayData as Record<string, unknown>);
+      if (converted) {
+        arrayData = converted.data;
+      }
+    }
     
     if (Array.isArray(arrayData)) {
       return arrayData.map((item, index) => {
         const row: Record<string, unknown> = { _index: index };
         fields.forEach(field => {
-          const fieldPath = field.path.includes("[0]")
+          let fieldPath = field.path.includes("[0]")
             ? field.path.split("[0].")[1]
             : field.path;
+          if (fieldPath) {
+            fieldPath = fieldPath.replace(/^\d{4}-\d{2}-\d{2}\./, "");
+          }
           row[field.label] = fieldPath ? getValueByPath(item, fieldPath) : item;
         });
         return row;
