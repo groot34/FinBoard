@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { extractArrayData, formatValue } from "@/lib/api-utils";
+import { extractArrayData, formatValue, getValueByPath } from "@/lib/api-utils";
 import type { WidgetConfig } from "@shared/schema";
 
 interface ChartDisplayProps {
@@ -31,7 +31,15 @@ export function ChartDisplay({ widget }: ChartDisplayProps) {
   const chartData = useMemo(() => {
     const extracted = extractArrayData(data, selectedFields);
     if (extracted.length > 0) {
-      return extracted.slice(0, 50);
+      return extracted.slice(0, 50).map((row, idx) => {
+        const processedRow: Record<string, unknown> = { _index: idx };
+        Object.entries(row).forEach(([key, value]) => {
+          if (key === "_index") return;
+          const numVal = parseFloat(String(value));
+          processedRow[key] = !isNaN(numVal) ? numVal : value;
+        });
+        return processedRow;
+      });
     }
 
     if (selectedFields.length > 0 && data) {
@@ -45,18 +53,6 @@ export function ChartDisplay({ widget }: ChartDisplayProps) {
 
     return [];
   }, [data, selectedFields]);
-
-  function getValueByPath(obj: unknown, path: string): unknown {
-    if (!obj || typeof obj !== "object") return undefined;
-    const keys = path.replace(/\[(\d+)\]/g, ".$1").split(".");
-    let result: unknown = obj;
-    for (const key of keys) {
-      if (result === null || result === undefined) return undefined;
-      if (typeof result !== "object") return undefined;
-      result = (result as Record<string, unknown>)[key];
-    }
-    return result;
-  }
 
   const numericFields = useMemo(() => {
     if (chartData.length === 0) return [];
