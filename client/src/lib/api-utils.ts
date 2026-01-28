@@ -148,6 +148,25 @@ export function extractArrayData(data: unknown, fields: Field[]): Record<string,
   return [];
 }
 
+export function extractObjectAsRows(data: unknown, fields: Field[]): Record<string, unknown>[] {
+  if (!data || !fields.length) return [];
+  
+  const rows: Record<string, unknown>[] = [];
+  
+  fields.forEach((field, index) => {
+    const value = getValueByPath(data, field.path);
+    if (value !== undefined) {
+      rows.push({
+        _index: index,
+        Field: field.label,
+        Value: value,
+      });
+    }
+  });
+  
+  return rows;
+}
+
 export function formatTimeAgo(isoString: string): string {
   const date = new Date(isoString);
   const now = new Date();

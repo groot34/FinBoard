@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
-import { extractArrayData, formatValue } from "@/lib/api-utils";
+import { extractArrayData, extractObjectAsRows, formatValue } from "@/lib/api-utils";
 import type { WidgetConfig } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -29,8 +29,13 @@ export function TableDisplay({ widget }: TableDisplayProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 10;
 
-  const tableData = useMemo(() => {
-    return extractArrayData(data, selectedFields);
+  const { tableData, isObjectMode } = useMemo(() => {
+    const arrayData = extractArrayData(data, selectedFields);
+    if (arrayData.length > 0) {
+      return { tableData: arrayData, isObjectMode: false };
+    }
+    const objectData = extractObjectAsRows(data, selectedFields);
+    return { tableData: objectData, isObjectMode: true };
   }, [data, selectedFields]);
 
   const filteredData = useMemo(() => {
@@ -96,7 +101,7 @@ export function TableDisplay({ widget }: TableDisplayProps) {
     );
   }
 
-  const columns = selectedFields.map(f => f.label);
+  const columns = isObjectMode ? ["Field", "Value"] : selectedFields.map(f => f.label);
 
   return (
     <div className="flex flex-col h-full space-y-2">
