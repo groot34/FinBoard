@@ -62,6 +62,7 @@ const ALLOWED_DOMAINS = [
   "cloud.iexapis.com",
   "iexcloud.io",
   "indianapi.in",
+  "stock.indianapi.in",
   "api.exchangerate-api.com",
   "openexchangerates.org",
   "data.fixer.io",
@@ -139,12 +140,19 @@ async function fetchExternalApi(url: string): Promise<{ success: boolean; data?:
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
+    const parsedUrl = new URL(url);
+    const headers: Record<string, string> = {
+      "Accept": "application/json",
+      "User-Agent": "FinanceDashboard/1.0",
+    };
+
+    if (parsedUrl.hostname === "stock.indianapi.in" && process.env.INDIAN_STOCK_API_KEY) {
+      headers["X-Api-Key"] = process.env.INDIAN_STOCK_API_KEY;
+    }
+
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "FinanceDashboard/1.0",
-      },
+      headers,
       signal: controller.signal,
     });
 
