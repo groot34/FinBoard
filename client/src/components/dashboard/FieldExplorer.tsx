@@ -52,9 +52,15 @@ export function FieldExplorer({
     if (isFieldSelected(path)) {
       onFieldsChange(selectedFields.filter(f => f.path !== path));
     } else {
-      const parts = path.split("~>");
-      const lastPart = parts[parts.length - 1] || path;
-      const label = lastPart.replace(/^\[0\]/, "").replace(/^~>/, "") || lastPart;
+      const parts = path.split("~>").filter(p => p && !p.match(/^\[\d+\]$/));
+      let label: string;
+      if (parts.length >= 2) {
+        label = `${parts[parts.length - 2]} ${parts[parts.length - 1]}`;
+      } else if (parts.length === 1) {
+        label = parts[0];
+      } else {
+        label = path;
+      }
       onFieldsChange([
         ...selectedFields,
         { path, label, type },
