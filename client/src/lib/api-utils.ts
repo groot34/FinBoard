@@ -87,10 +87,32 @@ export function getValueByPath(obj: unknown, path: string): unknown {
   const keys = path.replace(/\[(\d+)\]/g, ".$1").split(".");
   let result: unknown = obj;
   
-  for (const key of keys) {
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
     if (result === null || result === undefined) return undefined;
     if (typeof result !== "object") return undefined;
-    result = (result as Record<string, unknown>)[key];
+    
+    const objRecord = result as Record<string, unknown>;
+    
+    if (key in objRecord) {
+      result = objRecord[key];
+    } else if (/^\d+$/.test(key) && !Array.isArray(result)) {
+      const objKeys = Object.keys(objRecord);
+      const datePattern = /^\d{4}-\d{2}-\d{2}/;
+      if (objKeys.length > 0 && datePattern.test(objKeys[0])) {
+        const index = parseInt(key, 10);
+        const dateKey = objKeys[index];
+        if (dateKey) {
+          result = objRecord[dateKey];
+        } else {
+          return undefined;
+        }
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
   }
   
   return result;
