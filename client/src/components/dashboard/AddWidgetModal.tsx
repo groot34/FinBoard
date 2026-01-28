@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, RefreshCw, CheckCircle2, AlertCircle, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { useDashboardStore } from "@/lib/store";
 import { FieldExplorer } from "./FieldExplorer";
-import type { Field, DisplayMode, InsertWidget } from "@shared/schema";
+import type { Field, DisplayMode, InsertWidget, CustomHeader } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddWidgetModalProps {
@@ -33,9 +33,26 @@ export function AddWidgetModal({ open, onOpenChange }: AddWidgetModalProps) {
   const [fieldCount, setFieldCount] = useState(0);
   const [selectedFields, setSelectedFields] = useState<Field[]>([]);
   const [displayMode, setDisplayMode] = useState<DisplayMode>("card");
+  const [customHeaders, setCustomHeaders] = useState<CustomHeader[]>([]);
+  const [showHeaders, setShowHeaders] = useState(false);
 
   const addWidget = useDashboardStore(state => state.addWidget);
   const { toast } = useToast();
+
+  const addHeader = () => {
+    setCustomHeaders([...customHeaders, { key: "", value: "" }]);
+    setShowHeaders(true);
+  };
+
+  const removeHeader = (index: number) => {
+    setCustomHeaders(customHeaders.filter((_, i) => i !== index));
+  };
+
+  const updateHeader = (index: number, field: "key" | "value", value: string) => {
+    const updated = [...customHeaders];
+    updated[index] = { ...updated[index], [field]: value };
+    setCustomHeaders(updated);
+  };
 
   const resetForm = useCallback(() => {
     setName("");
@@ -47,6 +64,8 @@ export function AddWidgetModal({ open, onOpenChange }: AddWidgetModalProps) {
     setFieldCount(0);
     setSelectedFields([]);
     setDisplayMode("card");
+    setCustomHeaders([]);
+    setShowHeaders(false);
   }, []);
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -63,11 +82,16 @@ export function AddWidgetModal({ open, onOpenChange }: AddWidgetModalProps) {
     setTestError("");
     setTestData(null);
     
+    const validHeaders = customHeaders.filter(h => h.key && h.value);
+    
     try {
       const response = await fetch("/api/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: apiUrl }),
+        body: JSON.stringify({ 
+          url: apiUrl,
+          customHeaders: validHeaders.length > 0 ? validHeaders : undefined 
+        }),
       });
       
       const result = await response.json();
@@ -96,9 +120,12 @@ export function AddWidgetModal({ open, onOpenChange }: AddWidgetModalProps) {
       return;
     }
 
+    const validHeaders = customHeaders.filter(h => h.key && h.value);
+
     const widget: InsertWidget = {
       name,
       apiUrl,
+      customHeaders: validHeaders.length > 0 ? validHeaders : undefined,
       refreshInterval,
       displayMode,
       selectedFields,
@@ -174,6 +201,67 @@ export function AddWidgetModal({ open, onOpenChange }: AddWidgetModalProps) {
             <p className="text-xs text-muted-foreground">
               Supported: Alpha Vantage, Finnhub, Coinbase, CoinGecko, Binance, Yahoo Finance, Polygon, IEX Cloud, and more.
             </p>
+
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => customHeaders.length > 0 ? setShowHeaders(!showHeaders) : addHeader()}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-toggle-headers"
+              >
+                {customHeaders.length > 0 ? (
+                  showHeaders ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />
+                ) : <Plus className="w-3 h-3" />}
+                <span>Custom Headers (API Keys, Auth)</span>
+                {customHeaders.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">{customHeaders.length}</Badge>
+                )}
+              </button>
+
+              {showHeaders && (
+                <div className="mt-2 space-y-2 p-3 border border-border rounded-md bg-muted/30">
+                  {customHeaders.map((header, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Header name (e.g., X-API-Key)"
+                        value={header.key}
+                        onChange={(e) => updateHeader(index, "key", e.target.value)}
+                        className="flex-1 text-xs font-mono"
+                        data-testid={`input-header-key-${index}`}
+                      />
+                      <Input
+                        placeholder="Value"
+                        type="password"
+                        value={header.value}
+                        onChange={(e) => updateHeader(index, "value", e.target.value)}
+                        className="flex-1 text-xs font-mono"
+                        data-testid={`input-header-value-${index}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeHeader(index)}
+                        data-testid={`button-remove-header-${index}`}
+                      >
+                        <Trash2 className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addHeader}
+                    className="mt-1"
+                    data-testid="button-add-header"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Header
+                  </Button>
+                </div>
+              )}
+            </div>
             
             {testStatus === "success" && (
               <div className="flex items-center gap-2 text-sm text-primary mt-2 p-2 rounded-md bg-primary/10 border border-primary/20">

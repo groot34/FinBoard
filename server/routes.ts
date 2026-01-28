@@ -135,7 +135,7 @@ function countFields(obj: unknown): number {
   return Object.keys(obj).length;
 }
 
-async function fetchExternalApi(url: string): Promise<{ success: boolean; data?: unknown; error?: string }> {
+async function fetchExternalApi(url: string, customHeaders?: Array<{ key: string; value: string }>): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -152,6 +152,14 @@ async function fetchExternalApi(url: string): Promise<{ success: boolean; data?:
 
     if ((parsedUrl.hostname === "finnhub.io" || parsedUrl.hostname === "api.finnhub.io") && process.env.FINNHUB_API_KEY) {
       headers["X-Finnhub-Token"] = process.env.FINNHUB_API_KEY;
+    }
+
+    if (customHeaders) {
+      for (const header of customHeaders) {
+        if (header.key && header.value) {
+          headers[header.key] = header.value;
+        }
+      }
     }
 
     const response = await fetch(url, {
@@ -226,7 +234,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   app.post("/api/test", rateLimitMiddleware, async (req: Request, res: Response) => {
-    const { url } = req.body;
+    const { url, customHeaders } = req.body;
 
     if (!url) {
       return res.status(400).json({
@@ -243,7 +251,7 @@ export async function registerRoutes(
       });
     }
 
-    const result = await fetchExternalApi(url);
+    const result = await fetchExternalApi(url, customHeaders);
 
     if (result.success) {
       return res.json({
@@ -260,7 +268,7 @@ export async function registerRoutes(
   });
 
   app.post("/api/proxy", rateLimitMiddleware, async (req: Request, res: Response) => {
-    const { url } = req.body;
+    const { url, customHeaders } = req.body;
 
     if (!url) {
       return res.status(400).json({
@@ -277,7 +285,8 @@ export async function registerRoutes(
       });
     }
 
-    const cachedData = getCachedData(url);
+    const cacheKey = customHeaders ? `${url}:${JSON.stringify(customHeaders)}` : url;
+    const cachedData = getCachedData(cacheKey);
     if (cachedData !== null) {
       return res.json({
         success: true,
@@ -286,7 +295,7 @@ export async function registerRoutes(
       });
     }
 
-    const result = await fetchExternalApi(url);
+    const result = await fetchExternalApi(url, customHeaders);
 
     if (result.success) {
       setCacheData(url, result.data);

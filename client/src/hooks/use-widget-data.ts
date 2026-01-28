@@ -1,13 +1,16 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboardStore } from "@/lib/store";
-import type { WidgetConfig } from "@shared/schema";
+import type { WidgetConfig, CustomHeader } from "@shared/schema";
 
-async function fetchWidgetData(apiUrl: string): Promise<unknown> {
+async function fetchWidgetData(apiUrl: string, customHeaders?: CustomHeader[]): Promise<unknown> {
   const response = await fetch("/api/proxy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: apiUrl }),
+    body: JSON.stringify({ 
+      url: apiUrl,
+      customHeaders: customHeaders && customHeaders.length > 0 ? customHeaders : undefined
+    }),
   });
   
   const result = await response.json();
@@ -25,11 +28,11 @@ export function useWidgetData(widget: WidgetConfig) {
   const updateWidgetData = useDashboardStore(state => state.updateWidgetData);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const queryKey = ["widget-data", widget.id, widget.apiUrl];
+  const queryKey = ["widget-data", widget.id, widget.apiUrl, widget.customHeaders];
 
   const { data, error, isLoading, refetch } = useQuery({
     queryKey,
-    queryFn: () => fetchWidgetData(widget.apiUrl),
+    queryFn: () => fetchWidgetData(widget.apiUrl, widget.customHeaders),
     staleTime: (widget.refreshInterval * 1000) / 2,
     gcTime: widget.refreshInterval * 1000 * 2,
     refetchOnWindowFocus: false,

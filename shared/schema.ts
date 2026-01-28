@@ -14,10 +14,17 @@ export const fieldSchema = z.object({
 });
 export type Field = z.infer<typeof fieldSchema>;
 
+export const customHeaderSchema = z.object({
+  key: z.string(),
+  value: z.string(),
+});
+export type CustomHeader = z.infer<typeof customHeaderSchema>;
+
 export const widgetConfigSchema = z.object({
   id: z.string(),
   name: z.string(),
   apiUrl: z.string().url(),
+  customHeaders: z.array(customHeaderSchema).optional(),
   refreshInterval: z.number().min(5).default(30),
   displayMode: displayModeSchema.default("card"),
   chartType: chartTypeSchema.optional(),
@@ -63,6 +70,7 @@ export type InsertWidget = z.infer<typeof insertWidgetSchema>;
 
 export const apiTestRequestSchema = z.object({
   url: z.string().url(),
+  customHeaders: z.array(customHeaderSchema).optional(),
 });
 export type ApiTestRequest = z.infer<typeof apiTestRequestSchema>;
 
