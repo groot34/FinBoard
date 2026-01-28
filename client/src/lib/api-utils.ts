@@ -1,5 +1,7 @@
 import type { Field } from "@shared/schema";
 
+const PATH_SEP = "~>";
+
 function isTimeSeriesObject(obj: Record<string, unknown>): boolean {
   const keys = Object.keys(obj);
   if (keys.length < 2) return false;
@@ -25,7 +27,7 @@ export function flattenObject(obj: unknown, prefix = ""): Record<string, { value
       if (obj[0]) {
         const sampleItem = obj[0];
         Object.keys(sampleItem).forEach(key => {
-          const fullPath = prefix ? `${prefix}[0].${key}` : `[0].${key}`;
+          const fullPath = prefix ? `${prefix}[0]${PATH_SEP}${key}` : `[0]${PATH_SEP}${key}`;
           const val = (sampleItem as Record<string, unknown>)[key];
           result[fullPath] = { value: val, type: typeof val };
         });
@@ -43,9 +45,9 @@ export function flattenObject(obj: unknown, prefix = ""): Record<string, { value
     const firstKey = Object.keys(objRecord)[0];
     const sampleItem = objRecord[firstKey];
     if (sampleItem && typeof sampleItem === "object") {
-      result[`${prefix}[0].date`] = { value: firstKey, type: "string" };
+      result[`${prefix}[0]${PATH_SEP}date`] = { value: firstKey, type: "string" };
       Object.keys(sampleItem as Record<string, unknown>).forEach(itemKey => {
-        const itemPath = `${prefix}[0].${itemKey}`;
+        const itemPath = `${prefix}[0]${PATH_SEP}${itemKey}`;
         const itemVal = (sampleItem as Record<string, unknown>)[itemKey];
         result[itemPath] = { value: itemVal, type: typeof itemVal };
       });
@@ -54,7 +56,7 @@ export function flattenObject(obj: unknown, prefix = ""): Record<string, { value
   }
 
   Object.entries(objRecord).forEach(([key, value]) => {
-    const newPrefix = prefix ? `${prefix}.${key}` : key;
+    const newPrefix = prefix ? `${prefix}${PATH_SEP}${key}` : key;
     
     if (value === null || value === undefined) {
       result[newPrefix] = { value, type: "null" };
@@ -65,7 +67,7 @@ export function flattenObject(obj: unknown, prefix = ""): Record<string, { value
         result[newPrefix] = { value, type: "array" };
         if (value[0]) {
           Object.keys(value[0]).forEach(itemKey => {
-            const itemPath = `${newPrefix}[0].${itemKey}`;
+            const itemPath = `${newPrefix}[0]${PATH_SEP}${itemKey}`;
             const itemVal = (value[0] as Record<string, unknown>)[itemKey];
             result[itemPath] = { value: itemVal, type: typeof itemVal };
           });
@@ -84,11 +86,13 @@ export function flattenObject(obj: unknown, prefix = ""): Record<string, { value
 export function getValueByPath(obj: unknown, path: string): unknown {
   if (!obj || typeof obj !== "object") return undefined;
   
-  const keys = path.replace(/\[(\d+)\]/g, ".$1").split(".");
+  const normalizedPath = path.replace(/\[(\d+)\]/g, `${PATH_SEP}$1`);
+  const keys = normalizedPath.split(PATH_SEP);
   let result: unknown = obj;
   
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
+    if (!key) continue;
     if (result === null || result === undefined) return undefined;
     if (typeof result !== "object") return undefined;
     
@@ -96,19 +100,24 @@ export function getValueByPath(obj: unknown, path: string): unknown {
     
     if (key in objRecord) {
       result = objRecord[key];
-    } else if (/^\d+$/.test(key) && !Array.isArray(result)) {
-      const objKeys = Object.keys(objRecord);
-      const datePattern = /^\d{4}-\d{2}-\d{2}/;
-      if (objKeys.length > 0 && datePattern.test(objKeys[0])) {
+    } else if (/^\d+$/.test(key)) {
+      if (Array.isArray(result)) {
         const index = parseInt(key, 10);
-        const dateKey = objKeys[index];
-        if (dateKey) {
-          result = objRecord[dateKey];
+        result = result[index];
+      } else {
+        const objKeys = Object.keys(objRecord);
+        const datePattern = /^\d{4}-\d{2}-\d{2}/;
+        if (objKeys.length > 0 && datePattern.test(objKeys[0])) {
+          const index = parseInt(key, 10);
+          const dateKey = objKeys[index];
+          if (dateKey) {
+            result = objRecord[dateKey];
+          } else {
+            return undefined;
+          }
         } else {
           return undefined;
         }
-      } else {
-        return undefined;
       }
     } else {
       return undefined;
@@ -183,7 +192,7 @@ export function extractArrayData(data: unknown, fields: Field[]): Record<string,
   const arrayField = fields.find(f => f.path.includes("[0]"));
   if (arrayField) {
     let arrayPath = arrayField.path.split("[0]")[0];
-    if (arrayPath.endsWith(".")) arrayPath = arrayPath.slice(0, -1);
+    if (arrayPath.endsWith(PATH_SEP)) arrayPath = arrayPath.slice(0, -PATH_SEP.length);
     let arrayData = arrayPath ? getValueByPath(data, arrayPath) : data;
     
     if (arrayData && typeof arrayData === "object" && !Array.isArray(arrayData)) {
@@ -198,12 +207,22 @@ export function extractArrayData(data: unknown, fields: Field[]): Record<string,
         const row: Record<string, unknown> = { _index: index };
         fields.forEach(field => {
           let fieldPath = field.path.includes("[0]")
-            ? field.path.split("[0].")[1]
+            ? field.path.split(`[0]${PATH_SEP}`)[1]
             : field.path;
           if (fieldPath) {
-            fieldPath = fieldPath.replace(/^\d{4}-\d{2}-\d{2}\./, "");
+            const datePattern = /^\d{4}-\d{2}-\d{2}/;
+            const parts = fieldPath.split(PATH_SEP);
+            if (parts.length > 0 && datePattern.test(parts[0])) {
+              fieldPath = parts.slice(1).join(PATH_SEP);
+            }
           }
-          row[field.label] = fieldPath ? getValueByPath(item, fieldPath) : item;
+          if (fieldPath === "date") {
+            row[field.label] = (item as Record<string, unknown>).date;
+          } else if (fieldPath) {
+            row[field.label] = (item as Record<string, unknown>)[fieldPath];
+          } else {
+            row[field.label] = item;
+          }
         });
         return row;
       });

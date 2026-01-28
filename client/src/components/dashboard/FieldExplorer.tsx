@@ -52,7 +52,9 @@ export function FieldExplorer({
     if (isFieldSelected(path)) {
       onFieldsChange(selectedFields.filter(f => f.path !== path));
     } else {
-      const label = path.split(".").pop() || path;
+      const parts = path.split("~>");
+      const lastPart = parts[parts.length - 1] || path;
+      const label = lastPart.replace(/^\[0\]/, "").replace(/^~>/, "") || lastPart;
       onFieldsChange([
         ...selectedFields,
         { path, label, type },
