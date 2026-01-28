@@ -130,6 +130,26 @@ export function getValueByPath(obj: unknown, path: string): unknown {
 export function formatValue(value: unknown, format?: Field["format"]): string {
   if (value === null || value === undefined) return "-";
   
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "0 items";
+    if (typeof value[0] === "object") {
+      return `${value.length} items (use Table view)`;
+    }
+    return value.slice(0, 5).join(", ") + (value.length > 5 ? "..." : "");
+  }
+  
+  if (typeof value === "object") {
+    const keys = Object.keys(value as Record<string, unknown>);
+    if (keys.length <= 3) {
+      const entries = keys.map(k => {
+        const v = (value as Record<string, unknown>)[k];
+        return `${k}: ${typeof v === "object" ? "[...]" : v}`;
+      });
+      return entries.join(", ");
+    }
+    return `${keys.length} fields`;
+  }
+  
   const numValue = typeof value === "string" ? parseFloat(value) : value;
   
   switch (format) {
