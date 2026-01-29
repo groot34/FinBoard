@@ -99,7 +99,11 @@ npm run dev
 You should see output like:
 
 ```
-3:54:20 PM [express] serving on port 5000
+ ▲ Next.js 14.2.35
+ - Local:        http://localhost:5000
+ - Environments: .env
+ ✓ Starting...
+ ✓ Ready in 2.5s
 ```
 
 ### Step 6: Open in Browser
@@ -361,7 +365,7 @@ npm run dev
 
 If you want to use an API that's not in the whitelist:
 
-1. Open `server/routes.ts`
+1. Open `lib/server-utils.ts`
 2. Find the `ALLOWED_DOMAINS` array (around line 46)
 3. Add your domain:
 ```typescript
@@ -377,7 +381,7 @@ const ALLOWED_DOMAINS = [
 
 To change how long API responses are cached:
 
-1. Open `server/routes.ts`
+1. Open `lib/server-utils.ts`
 2. Find `const CACHE_TTL = 10000;` (line 17)
 3. Change the value (in milliseconds):
 ```typescript
@@ -388,7 +392,7 @@ const CACHE_TTL = 30000; // 30 seconds cache
 
 To adjust rate limiting:
 
-1. Open `server/routes.ts`
+1. Open `lib/server-utils.ts`
 2. Modify these constants:
 ```typescript
 const RATE_LIMIT_WINDOW = 60000; // Time window in ms (60 seconds)

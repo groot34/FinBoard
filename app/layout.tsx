@@ -16,7 +16,7 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Finance Dashboard</title>
+        <title>Atharva Assignment</title>
         <meta name="description" content="Customizable finance dashboard with real-time data" />
       </head>
       <body>

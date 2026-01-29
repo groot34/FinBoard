@@ -175,7 +175,8 @@ Finance-Dashboard-Custom/
 │   └── ui/                # Shadcn UI components
 ├── lib/                   # Utilities
 │   ├── store.ts           # Zustand state management
-│   ├── server-utils.ts    # Server-side utilities
+│   ├── server-utils.ts    # Server-side utilities (Proxy, Rate Limit)
+│   ├── api-utils.ts       # Client-side helpers
 │   └── queryClient.ts     # React Query setup
 ├── hooks/                 # Custom React hooks
 ├── public/                # Static assets
@@ -245,11 +246,11 @@ The built-in Next.js API proxy handles CORS automatically. Always use the test c
 The app uses a professional dark theme with teal accents. To customize:
 
 1. Edit `tailwind.config.ts` for colors
-2. Modify CSS variables in `client/src/index.css`
+2. Modify CSS variables in `app/globals.css`
 
 ### Adding New Display Modes
 
-1. Create a new component in `client/src/components/dashboard/widget-displays/`
+1. Create a new component in `components/dashboard/widget-displays/`
 2. Add the display mode to the schema in `shared/schema.ts`
 3. Update the Widget component to render your new display mode
 
