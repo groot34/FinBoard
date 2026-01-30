@@ -21,17 +21,17 @@ A customizable real-time finance dashboard where users can build their own monit
 - **Intelligent Caching**: 10-second cache to optimize API calls and reduce redundant requests
 - **Rate Limiting**: Built-in protection (30 requests per minute per IP)
 
-### Supported Financial APIs
-- Alpha Vantage
-- Finnhub
-- CoinGecko
-- Coinbase
-- Binance
-- Yahoo Finance
-- Polygon.io
-- IEX Cloud
-- IndianAPI
-- And many more...
+### Allowed API Domains (Whitelist)
+
+The application enforces security by only allowing requests to specific trusted financial API domains. The current whitelist includes:
+
+- **Stocks**: Alpha Vantage, Finnhub, Yahoo Finance, Polygon.io, IEX Cloud, IndianAPI
+- **Crypto**: CoinGecko, Coinbase, Binance, Kraken, Gemini, KuCoin, Huobi, Bybit, Bitfinex, Bitstamp, Messari, Nomics
+- **Forex/Rates**: Frankfurter, ExchangeRate-API, OpenExchangeRates, Fixer.io
+- **Other**: CDN jsDelivr
+
+**Full Allowed List:**
+`alphavantage.co`, `finnhub.io`, `coinbase.com`, `coingecko.com`, `binance.com`, `yahoo.com` (finance), `polygon.io`, `iexcloud.io`, `indianapi.in`, `exchangerate-api.com`, `openexchangerates.org`, `fixer.io`, `cryptocompare.com`, `messari.io`, `nomics.com`, `kraken.com`, `gemini.com`, `kucoin.com`, `huobi.pro`, `bybit.com`, `bitfinex.com`, `bitstamp.net`, `coinapi.io`, `exchangeratesapi.io`, `frankfurter.app`.
 
 ### User Interface & Experience
 - **Customizable Widgets**: Editable titles and selected metrics
@@ -132,7 +132,34 @@ https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&incl
 https://query1.finance.yahoo.com/v8/finance/chart/MSFT
 ```
 
-### Widget Configuration
+### Free APIs (No Key Required)
+
+These URLs work directly with the tested whitelist without requiring an API key:
+
+**CoinGecko - Crypto Prices:**
+```
+https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd,eur
+```
+
+**Binance - Ticker Price:**
+```
+https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT
+```
+
+**Gemini - Ticker:**
+```
+https://api.gemini.com/v1/pubticker/btcusd
+```
+
+**Kraken - Asset Ticker:**
+```
+https://api.kraken.com/0/public/Ticker?pair=XBTUSD
+```
+
+**Frankfurter - Currency Exchange:**
+```
+https://api.frankfurter.app/latest?from=USD&to=EUR,JPY,GBP
+```
 
 - **Display Modes**:
   - **Card**: Best for key-value data (current price, market cap, etc.)
