@@ -159,30 +159,30 @@ export function formatValue(value: unknown, format?: Field["format"]): string {
           style: "currency",
           currency: "USD",
           minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
+          maximumFractionDigits: 20, // Max precision for crypto/forex updates
         }).format(numValue);
       }
       return String(value);
     
     case "percentage":
       if (typeof numValue === "number" && !isNaN(numValue)) {
-        return `${numValue.toFixed(2)}%`;
+        return `${numValue.toFixed(4)}%`; // Increased to 4 for consistency
       }
       return String(value);
     
     case "number":
       if (typeof numValue === "number" && !isNaN(numValue)) {
         return new Intl.NumberFormat("en-US", {
-          maximumFractionDigits: 6,
+          maximumFractionDigits: 20,
         }).format(numValue);
       }
       return String(value);
     
     default:
-      if (typeof value === "number") {
+      if (typeof numValue === "number" && !isNaN(numValue)) {
         return new Intl.NumberFormat("en-US", {
-          maximumFractionDigits: 6,
-        }).format(value);
+          maximumFractionDigits: 20,
+        }).format(numValue);
       }
       return String(value);
   }

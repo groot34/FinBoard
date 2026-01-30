@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Plus, Download, Upload, Trash2 } from "lucide-react";
+import { BarChart3, Plus, Download, Upload, Trash2, Zap, Bitcoin, Globe } from "lucide-react";
 import { useDashboardStore } from "@/lib/store";
+import { QUICK_TEMPLATES } from "@/lib/templates";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -28,10 +30,22 @@ interface HeaderProps {
 }
 
 export function Header({ onAddWidget }: HeaderProps) {
-  const { widgets, exportConfig, importConfig, clearDashboard } = useDashboardStore();
+  const { widgets, addWidget, exportConfig, importConfig, clearDashboard } = useDashboardStore();
   const { toast } = useToast();
 
   const activeWidgets = widgets.length;
+
+  const availableTemplates = QUICK_TEMPLATES.filter(
+    (template) => !widgets.some((w) => w.templateId === template.id)
+  );
+
+  const handleAddTemplate = (template: typeof QUICK_TEMPLATES[0]) => {
+    addWidget(template.config);
+    toast({
+      title: "Widget Added",
+      description: `${template.name} has been added to your dashboard.`,
+    });
+  };
 
   const handleExport = () => {
     const config = exportConfig();
@@ -81,7 +95,7 @@ export function Header({ onAddWidget }: HeaderProps) {
           <BarChart3 className="w-5 h-5 text-primary" />
         </div>
         <div className="flex flex-col">
-          <h1 className="text-lg font-semibold text-foreground">Finance Dashboard</h1>
+          <h1 className="text-lg font-semibold text-foreground">Groww Assignment</h1>
           <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             {activeWidgets > 0 ? (
               <>
@@ -97,12 +111,44 @@ export function Header({ onAddWidget }: HeaderProps) {
       </div>
 
       <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
+        {availableTemplates.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Zap className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <span className="hidden sm:inline">Quick Actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Quick Templates</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {availableTemplates.map((template) => (
+                <DropdownMenuItem
+                  key={template.id}
+                  onClick={() => handleAddTemplate(template)}
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    {template.icon === "bitcoin" && <Bitcoin className="w-4 h-4 text-orange-500" />}
+                    {template.icon === "ethereum" && <div className="w-4 h-4 rounded-full border-2 border-slate-500 flex items-center justify-center text-[10px] font-bold text-slate-500">Ξ</div>}
+                    {template.icon === "globe" && <Globe className="w-4 h-4 text-blue-500" />}
+                    <div className="flex flex-col">
+                      <span className="font-medium">{template.name}</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[140px]">{template.description}</span>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {widgets.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" data-testid="button-dashboard-menu">
                 <Download className="w-4 h-4 mr-2" />
-                Options
+                <span className="hidden sm:inline">Options</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -152,7 +198,8 @@ export function Header({ onAddWidget }: HeaderProps) {
         
         <Button onClick={onAddWidget} data-testid="button-add-widget">
           <Plus className="w-4 h-4 mr-2" />
-          Add Widget
+          <span className="hidden sm:inline">Add Widget</span>
+          <span className="sm:hidden">Add</span>
         </Button>
       </div>
     </header>

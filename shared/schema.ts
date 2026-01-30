@@ -33,6 +33,7 @@ export const widgetConfigSchema = z.object({
   isLoading: z.boolean().optional(),
   error: z.string().optional(),
   data: z.any().optional(),
+  templateId: z.string().optional(),
 });
 export type WidgetConfig = z.infer<typeof widgetConfigSchema>;
 
