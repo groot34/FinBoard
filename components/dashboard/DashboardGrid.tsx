@@ -48,7 +48,7 @@ export function DashboardGrid({ onAddWidget }: DashboardGridProps) {
   const { widgets, layouts, updateLayout } = useDashboardStore();
   const { containerRef, width } = useContainerWidth();
 
-  const cols = width > 1200 ? 12 : width > 768 ? 8 : 4;
+  const cols = width > 1200 ? 12 : width > 768 ? 8 : width > 480 ? 4 : 2;
 
   const lgLayouts = useMemo(() => {
     const widgetIds = new Set(widgets.map(w => w.id));
@@ -100,7 +100,7 @@ export function DashboardGrid({ onAddWidget }: DashboardGridProps) {
   const GridLayoutAny = GridLayout as any;
 
   return (
-    <div ref={containerRef} className="p-6">
+    <div ref={containerRef} className="p-2 sm:p-6">
       <GridLayoutAny
         className="layout"
         layout={currentLayout}

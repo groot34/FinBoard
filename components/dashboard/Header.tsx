@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface HeaderProps {
   onAddWidget: () => void;
@@ -74,14 +75,14 @@ export function Header({ onAddWidget }: HeaderProps) {
   };
 
   return (
-    <header className="flex items-center justify-between gap-4 px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 border border-primary/20">
+    <header className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
           <BarChart3 className="w-5 h-5 text-primary" />
         </div>
         <div className="flex flex-col">
           <h1 className="text-lg font-semibold text-foreground">Finance Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             {activeWidgets > 0 ? (
               <>
                 <span className="text-foreground font-medium">{activeWidgets}</span>
@@ -89,13 +90,13 @@ export function Header({ onAddWidget }: HeaderProps) {
                 {" "}&bull;{" "}Real-time data
               </>
             ) : (
-              "Connect to APIs and build your custom dashboard"
+              "Connect to APIs and build your dashboard"
             )}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
         {widgets.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -146,6 +147,8 @@ export function Header({ onAddWidget }: HeaderProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        
+        <ThemeToggle />
         
         <Button onClick={onAddWidget} data-testid="button-add-widget">
           <Plus className="w-4 h-4 mr-2" />

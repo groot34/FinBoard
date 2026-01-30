@@ -5,7 +5,11 @@ import type { WidgetConfig, LayoutItem, DashboardState, InsertWidget, Field } fr
 
 const DEFAULT_WIDGET_SIZE = { w: 4, h: 3, minW: 2, minH: 2 };
 
+export type Theme = "dark" | "light" | "system";
+
 interface DashboardStore extends DashboardState {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
   addWidget: (widget: InsertWidget) => string;
   removeWidget: (id: string) => void;
   updateWidget: (id: string, updates: Partial<WidgetConfig>) => void;
@@ -32,8 +36,11 @@ function getNextPosition(layouts: LayoutItem[]): { x: number; y: number } {
 export const useDashboardStore = create<DashboardStore>()(
   persist(
     (set, get) => ({
+      theme: "system",
       widgets: [],
       layouts: { lg: [] },
+
+      setTheme: (theme: Theme) => set({ theme }),
 
       addWidget: (widgetData: InsertWidget) => {
         const id = uuidv4();
@@ -111,6 +118,7 @@ export const useDashboardStore = create<DashboardStore>()(
         return JSON.stringify({
           widgets: state.widgets.map(({ data, isLoading, error, lastUpdated, ...rest }) => rest),
           layouts: state.layouts,
+          theme: state.theme,
         }, null, 2);
       },
 
@@ -118,7 +126,7 @@ export const useDashboardStore = create<DashboardStore>()(
         try {
           const config = JSON.parse(configStr);
           if (config.widgets && config.layouts) {
-            set({
+            set((state) => ({
               widgets: config.widgets.map((w: Omit<WidgetConfig, "data" | "isLoading" | "error" | "lastUpdated">) => ({
                 ...w,
                 data: undefined,
@@ -127,7 +135,8 @@ export const useDashboardStore = create<DashboardStore>()(
                 lastUpdated: undefined,
               })),
               layouts: config.layouts,
-            });
+              theme: config.theme || state.theme,
+            }));
             return true;
           }
           return false;
@@ -142,6 +151,7 @@ export const useDashboardStore = create<DashboardStore>()(
       partialize: (state) => ({
         widgets: state.widgets.map(({ data, isLoading, error, ...rest }) => rest),
         layouts: state.layouts,
+        theme: state.theme,
       }),
     }
   )
