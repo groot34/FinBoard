@@ -171,20 +171,19 @@ Finance-Dashboard-Custom/
 │   └── globals.css        # Global styles
 ├── components/            # React components
 │   ├── dashboard/         # Dashboard-specific components
-│   ├── layout/            # Layout components (Header)
-│   └── ui/                # Shadcn UI components
+│   ├── ui/                # Shadcn UI components
+│   ├── ThemeProvider.tsx  # Theme provider
+│   └── ThemeToggle.tsx    # Theme switcher
 ├── lib/                   # Utilities
 │   ├── store.ts           # Zustand state management
-│   ├── server-utils.ts    # Server-side utilities (Proxy, Rate Limit)
+│   ├── server-utils.ts    # Server-side utilities
 │   ├── api-utils.ts       # Client-side helpers
 │   └── queryClient.ts     # React Query setup
 ├── hooks/                 # Custom React hooks
-├── public/                # Static assets
 ├── shared/                # Shared types and schemas
-├── .env.example           # Environment variable template
-├── package.json           # Dependencies and scripts
 ├── next.config.js         # Next.js configuration
-└── tailwind.config.ts     # Tailwind CSS configuration
+├── tailwind.config.ts     # Tailwind CSS configuration
+└── package.json           # Dependencies and scripts
 ```
 
 ## 🔧 Configuration
@@ -224,14 +223,6 @@ If you hit rate limits:
 - Use API keys to increase limits
 - Increase widget refresh intervals
 
-### TypeScript Errors
-
-The TypeScript errors you see in the IDE are expected before running `npm install`. They will resolve after installing dependencies.
-
-### CORS Errors
-
-The built-in Next.js API proxy handles CORS automatically. Always use the test connection feature to verify API compatibility.
-
 ### Widget Not Updating
 
 - Check your internet connection
@@ -241,33 +232,15 @@ The built-in Next.js API proxy handles CORS automatically. Always use the test c
 
 ## 🎨 Customization
 
-### Color Theme
-
-The app uses a professional dark theme with teal accents. To customize:
-
-1. Edit `tailwind.config.ts` for colors
-2. Modify CSS variables in `app/globals.css`
-
 ### Adding New Display Modes
 
 1. Create a new component in `components/dashboard/widget-displays/`
 2. Add the display mode to the schema in `shared/schema.ts`
 3. Update the Widget component to render your new display mode
 
-## 📝 License
-
-MIT
-
 ## 🤝 Contributing
 
 This is an assignment project, but suggestions and feedback are welcome!
-
-## 📧 Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review the API provider's documentation
-3. Check browser console for errors
 
 ## 🎯 Assignment Evaluation Criteria
 
