@@ -95,7 +95,7 @@ export function Header({ onAddWidget }: HeaderProps) {
           <BarChart3 className="w-5 h-5 text-primary" />
         </div>
         <div className="flex flex-col">
-          <h1 className="text-lg font-semibold text-foreground">Groww Assignment</h1>
+          <h1 className="text-lg font-semibold text-foreground">Finance Dashboard</h1>
           <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             {activeWidgets > 0 ? (
               <>

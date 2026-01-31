@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { extractArrayData, extractObjectAsRows, formatValue } from "@/lib/api-utils";
 import type { WidgetConfig } from "@shared/schema";
 import { cn } from "@/lib/utils";
@@ -23,7 +22,6 @@ type SortDirection = "asc" | "desc" | null;
 
 export function TableDisplay({ widget }: TableDisplayProps) {
   const { data, selectedFields } = widget;
-  const [search, setSearch] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -38,21 +36,9 @@ export function TableDisplay({ widget }: TableDisplayProps) {
     return { tableData: objectData, isObjectMode: true };
   }, [data, selectedFields]);
 
-  const filteredData = useMemo(() => {
-    if (!search) return tableData;
-    const lowerSearch = search.toLowerCase();
-    return tableData.filter(row =>
-      Object.entries(row)
-        .filter(([key]) => key !== "_index")
-        .some(([, value]) =>
-          String(value).toLowerCase().includes(lowerSearch)
-        )
-    );
-  }, [tableData, search]);
-
   const sortedData = useMemo(() => {
-    if (!sortColumn || !sortDirection) return filteredData;
-    return [...filteredData].sort((a, b) => {
+    if (!sortColumn || !sortDirection) return tableData;
+    return [...tableData].sort((a, b) => {
       const aVal = a[sortColumn];
       const bVal = b[sortColumn];
       
@@ -66,7 +52,7 @@ export function TableDisplay({ widget }: TableDisplayProps) {
       
       return sortDirection === "asc" ? comparison : -comparison;
     });
-  }, [filteredData, sortColumn, sortDirection]);
+  }, [tableData, sortColumn, sortDirection]);
 
   const paginatedData = useMemo(() => {
     const start = currentPage * pageSize;
@@ -106,20 +92,7 @@ export function TableDisplay({ widget }: TableDisplayProps) {
   return (
     <div className="flex flex-col h-full space-y-2">
       <div className="flex items-center justify-between gap-4 px-1">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
-          <Input
-            placeholder="Search table..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(0);
-            }}
-            className="pl-7 h-7 text-xs"
-            data-testid="input-table-search"
-          />
-        </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground ml-auto">
           {sortedData.length} of {tableData.length} items
         </span>
       </div>

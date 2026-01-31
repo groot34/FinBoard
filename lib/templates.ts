@@ -20,11 +20,11 @@ export const QUICK_TEMPLATES: QuickTemplate[] = [
       displayMode: "card",
       refreshInterval: 30,
       selectedFields: [
-         { path: "data~>rates~>USD", label: "BTC / USD", type: "number", format: "currency" },
-         { path: "data~>rates~>EUR", label: "BTC / EUR", type: "number", format: "currency" },
-         { path: "data~>rates~>INR", label: "BTC / INR", type: "number", format: "currency" },
-         { path: "data~>rates~>GBP", label: "BTC / GBP", type: "number", format: "currency" },
-         { path: "data~>rates~>JPY", label: "BTC / JPY", type: "number", format: "currency" }
+         { path: "data~>rates~>USD", label: "BTC / USD", type: "number", format: "number" },
+         { path: "data~>rates~>EUR", label: "BTC / EUR", type: "number", format: "number" },
+         { path: "data~>rates~>INR", label: "BTC / INR", type: "number", format: "number" },
+         { path: "data~>rates~>GBP", label: "BTC / GBP", type: "number", format: "number" },
+         { path: "data~>rates~>JPY", label: "BTC / JPY", type: "number", format: "number" }
       ],
       templateId: "btc-price-coinbase"
     }
@@ -40,11 +40,11 @@ export const QUICK_TEMPLATES: QuickTemplate[] = [
       displayMode: "card",
       refreshInterval: 30,
       selectedFields: [
-         { path: "data~>rates~>USD", label: "ETH / USD", type: "number", format: "currency" },
-         { path: "data~>rates~>EUR", label: "ETH / EUR", type: "number", format: "currency" },
-         { path: "data~>rates~>INR", label: "ETH / INR", type: "number", format: "currency" },
-         { path: "data~>rates~>GBP", label: "ETH / GBP", type: "number", format: "currency" },
-         { path: "data~>rates~>JPY", label: "ETH / JPY", type: "number", format: "currency" }
+         { path: "data~>rates~>USD", label: "ETH / USD", type: "number", format: "number" },
+         { path: "data~>rates~>EUR", label: "ETH / EUR", type: "number", format: "number" },
+         { path: "data~>rates~>INR", label: "ETH / INR", type: "number", format: "number" },
+         { path: "data~>rates~>GBP", label: "ETH / GBP", type: "number", format: "number" },
+         { path: "data~>rates~>JPY", label: "ETH / JPY", type: "number", format: "number" }
       ],
       templateId: "eth-price-coinbase"
     }
